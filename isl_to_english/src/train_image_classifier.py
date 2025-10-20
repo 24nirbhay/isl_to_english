@@ -9,8 +9,11 @@ def train_model():
     Trains an image classification model for hand gestures using transfer learning.
     """
     # --- 1. Configuration ---
-    # Assumes your dataset is in 'project_root/data/images'
-    DATA_DIR = os.path.join('..', 'data', 'images') 
+    # Resolve repository root relative to this file so paths work regardless of CWD
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    # Use the provided handsigns image dataset
+    # The repository contains `data/handsigns/<label>/*.jpg|png`
+    DATA_DIR = os.path.join(repo_root, 'data', 'handsigns')
 
     # Model-specific parameters
     IMG_SIZE = (224, 224) # Input size for MobileNetV2
@@ -42,7 +45,9 @@ def train_model():
     num_classes = len(class_names)
     print(f"\nFound {num_classes} classes. Saving class names...")
     # Save the class names for use during inference
-    dump(class_names, os.path.join('..', 'models', 'image_class_names.joblib'))
+    models_dir = os.path.join(repo_root, 'models')
+    os.makedirs(models_dir, exist_ok=True)
+    dump(class_names, os.path.join(models_dir, 'image_class_names.joblib'))
 
     # --- 4. Configure Dataset for Performance ---
     AUTOTUNE = tf.data.AUTOTUNE
@@ -96,8 +101,8 @@ def train_model():
     print("\nTraining finished!")
 
     # --- 10. Save the Trained Model ---
-    model.save(os.path.join('..', 'models', 'image_gesture_recognizer.keras'))
-    print("\nModel saved to models/image_gesture_recognizer.keras")
+    model.save(os.path.join(models_dir, 'image_gesture_recognizer.keras'))
+    print(f"\nModel saved to {os.path.join(models_dir, 'image_gesture_recognizer.keras')}")
 
     # --- 11. Visualize Performance ---
     acc = history.history['accuracy']
@@ -124,7 +129,9 @@ def train_model():
     plt.show()
 
 if __name__ == '__main__':
-    # Create models directory if it doesn't exist
-    if not os.path.exists(os.path.join('..', 'models')):
-        os.makedirs(os.path.join('..', 'models'))
+    # Ensure models directory exists relative to repo root
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    models_dir = os.path.join(repo_root, 'models')
+    if not os.path.exists(models_dir):
+        os.makedirs(models_dir)
     train_model()
