@@ -15,7 +15,7 @@ opencv-python==4.10.0.84
 mediapipe==0.10.20
 
 # Resolve protobuf conflicts — Mediapipe requires <5.0
-protobuf>=4.25.3,<5.0
+protobuf>=4.25.3
 
 # Utilities
 joblib==1.4.2

@@ -85,15 +85,47 @@ def collect_data(gesture_name, num_samples=10, sequence_length=30):
             csv.writer(f).writerows(sequence)
 
 
-def extract_landmarks_from_image_file(image_path):
+def extract_landmarks_from_image_file(image_path, debug=False):
     """Process a single image file and return a 126-length landmark list."""
     img = cv2.imread(image_path)
     if img is None:
+        print(f"Could not read image: {image_path}")
         return None
+    
+    # Resize if image is too large (helps with detection)
+    max_dim = 1280
+    h, w = img.shape[:2]
+    if h > max_dim or w > max_dim:
+        scale = max_dim / max(h, w)
+        img = cv2.resize(img, None, fx=scale, fy=scale)
+    
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    hands = mp_hands.Hands(static_image_mode=True, max_num_hands=2)
+    hands = mp_hands.Hands(
+        static_image_mode=True,
+        max_num_hands=2,
+        min_detection_confidence=0.5  # Lower this if hands aren't being detected
+    )
+    
     results = hands.process(img_rgb)
     landmarks = _extract_two_hand_landmarks_from_results(results)
+    
+    if debug:
+        debug_img = img.copy()
+        if results.multi_hand_landmarks:
+            for hand_landmarks in results.multi_hand_landmarks:
+                mp_drawing = mp.solutions.drawing_utils
+                mp_drawing.draw_landmarks(debug_img, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+            print(f"Detected {len(results.multi_hand_landmarks)} hands in {image_path}")
+        else:
+            print(f"No hands detected in {image_path}")
+        
+        # Save debug image
+        debug_dir = os.path.join("data", "debug_detection")
+        os.makedirs(debug_dir, exist_ok=True)
+        base_name = os.path.splitext(os.path.basename(image_path))[0]
+        debug_path = os.path.join(debug_dir, f"{base_name}_debug.jpg")
+        cv2.imwrite(debug_path, debug_img)
+    
     hands.close()
     return landmarks
 
@@ -103,6 +135,9 @@ def process_image_dataset(src_root, dst_root=DATA_PATH):
     This converts image datasets into the same CSV sequence format (single-row sequences) used by the trainer.
     """
     os.makedirs(dst_root, exist_ok=True)
+    total_processed = 0
+    total_failed = 0
+    
     for label_dir in os.listdir(src_root):
         src_label_path = os.path.join(src_root, label_dir)
         if not os.path.isdir(src_label_path):
@@ -111,10 +146,16 @@ def process_image_dataset(src_root, dst_root=DATA_PATH):
         os.makedirs(dst_label_path, exist_ok=True)
 
         images = glob.glob(os.path.join(src_label_path, "*.jpg")) + glob.glob(os.path.join(src_label_path, "*.png"))
+        print(f"\nProcessing {len(images)} images for label '{label_dir}'...")
+        
         for idx, img_path in enumerate(images):
-            landmarks = extract_landmarks_from_image_file(img_path)
+            print(f"  Processing {os.path.basename(img_path)}...", end="")
+            landmarks = extract_landmarks_from_image_file(img_path, debug=True)
             if landmarks is None:
+                print(" Failed!")
+                total_failed += 1
                 continue
+            print(" Done")
             file_path = os.path.join(dst_label_path, f"sequence_{idx}.csv")
             with open(file_path, mode='w', newline='') as f:
                 csv.writer(f).writerow(landmarks)

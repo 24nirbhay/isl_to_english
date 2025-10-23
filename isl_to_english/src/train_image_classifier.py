@@ -21,24 +21,82 @@ def train_model():
 
     # --- 2. Create Datasets (Training and Validation) ---
     print("Creating training dataset...")
-    train_dataset = tf.keras.utils.image_dataset_from_directory(
-        DATA_DIR,
-        validation_split=0.2,  # Use 20% of the data for validation
-        subset="training",
-        seed=42,               # Seed for reproducibility
-        image_size=IMG_SIZE,
-        batch_size=BATCH_SIZE
-    )
+    # verify DATA_DIR exists and list label folders + counts
+    if not os.path.exists(DATA_DIR):
+        raise FileNotFoundError(f"DATA_DIR not found: {DATA_DIR}")
 
-    print("Creating validation dataset...")
-    validation_dataset = tf.keras.utils.image_dataset_from_directory(
-        DATA_DIR,
-        validation_split=0.2,
-        subset="validation",
-        seed=42,
-        image_size=IMG_SIZE,
-        batch_size=BATCH_SIZE
-    )
+    image_exts = {'.jpg', '.jpeg', '.png', '.bmp', '.gif'}
+    label_dirs = [d for d in sorted(os.listdir(DATA_DIR)) if os.path.isdir(os.path.join(DATA_DIR, d))]
+    if not label_dirs:
+        raise ValueError(f"No label subdirectories found in {DATA_DIR}. Expected structure: {DATA_DIR}/<label>/*.jpg")
+
+    total_images = 0
+    print("Found label directories:")
+    for label in label_dirs:
+        p = os.path.join(DATA_DIR, label)
+        imgs = [f for f in os.listdir(p) if os.path.splitext(f)[1].lower() in image_exts]
+        print(f"  {label}: {len(imgs)} files")
+        total_images += len(imgs)
+
+    if total_images == 0:
+        raise ValueError(f"No image files found under {DATA_DIR}. Check file extensions and that images are inside label folders.")
+
+    # Try the convenient loader; if it fails, fall back to building a dataset from file paths
+    try:
+        train_dataset = tf.keras.utils.image_dataset_from_directory(
+            DATA_DIR,
+            validation_split=0.2,  # Use 20% of the data for validation
+            subset="training",
+            seed=42,               # Seed for reproducibility
+            image_size=IMG_SIZE,
+            batch_size=BATCH_SIZE
+        )
+
+        print("Creating validation dataset...")
+        validation_dataset = tf.keras.utils.image_dataset_from_directory(
+            DATA_DIR,
+            validation_split=0.2,
+            subset="validation",
+            seed=42,
+            image_size=IMG_SIZE,
+            batch_size=BATCH_SIZE
+        )
+    except Exception as e:
+        print("image_dataset_from_directory failed, falling back to creating dataset from file paths. Error:", e)
+
+        # Build file lists and numeric labels
+        filepaths = []
+        labels = []
+        for label in label_dirs:
+            p = os.path.join(DATA_DIR, label)
+            for fname in sorted(os.listdir(p)):
+                if os.path.splitext(fname)[1].lower() in image_exts:
+                    filepaths.append(os.path.join(p, fname))
+                    labels.append(label)
+
+        class_names = sorted(list(dict.fromkeys(labels)))
+        label_to_idx = {n: i for i, n in enumerate(class_names)}
+        numeric_labels = [label_to_idx[l] for l in labels]
+
+        # create tf.data.Dataset
+        path_ds = tf.data.Dataset.from_tensor_slices(filepaths)
+        label_ds = tf.data.Dataset.from_tensor_slices(numeric_labels)
+        ds = tf.data.Dataset.zip((path_ds, label_ds))
+
+        def _load_image(path, label):
+            image = tf.io.read_file(path)
+            image = tf.image.decode_image(image, channels=3, expand_animations=False)
+            image = tf.image.resize(image, IMG_SIZE)
+            return image, label
+
+        ds = ds.map(_load_image, num_parallel_calls=tf.data.AUTOTUNE)
+        ds = ds.shuffle(1000)
+        ds = ds.batch(BATCH_SIZE)
+        val_size = int(0.2 * len(filepaths))
+        validation_dataset = ds.take(val_size).prefetch(tf.data.AUTOTUNE)
+        train_dataset = ds.skip(val_size).prefetch(tf.data.AUTOTUNE)
+
+        print(f"Loaded dataset from filepaths with {len(filepaths)} images and {len(class_names)} classes.")
 
     # --- 3. Extract and Save Class Names ---
     class_names = train_dataset.class_names
