@@ -26,7 +26,7 @@ eng:no
 kon:ना
 
 eng:hello how are you
-kon:नमस्कार तू कशो आसा
+kon:नमस्कार कशें आसात
 
 eng:i am fine
 kon:हांव बरो आसा
@@ -68,10 +68,10 @@ eng:goodbye
 kon:भेट येता
 
 eng:see you later
-kon:magir melya
+kon:मागीर मेळया
 
 eng:welcome
 kon:येवकार
 
 eng:let it be
-kon:zav baye
+kon:सोडून दि
