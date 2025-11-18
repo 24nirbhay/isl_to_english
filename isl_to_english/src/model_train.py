@@ -41,7 +41,7 @@ def train_model(epochs=50, batch_size=32, validation_split=0.2):
         f.write("\n".join(le.classes_))
     
     logging.info(f"Found {len(le.classes_)} unique classes: {le.classes_}")
-
+  
     # Split dataset
     X_train, X_test, y_train, y_test = train_test_split(
         X, y_encoded, 

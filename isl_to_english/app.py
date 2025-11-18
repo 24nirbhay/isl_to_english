@@ -6,7 +6,7 @@ from src.real_time_translator import main as run_translator
 
 def main():
     parser = argparse.ArgumentParser(description="ISL to English Translator")
-    parser.add_argument("command", choices=["collect", "prepare", "train", "run"], help="Command to execute")
+    parser.add_argument("command", choices=["collect", "prepare", "train", "run", "gpu-check"], help="Command to execute")
     parser.add_argument("--gesture", help="Gesture name for data collection")
     args = parser.parse_args()
 
@@ -28,6 +28,9 @@ def main():
         train_model()
     elif args.command == "run":
         run_translator()
+    elif args.command == "gpu-check":
+        from src.gpu_check import check_gpu
+        check_gpu()
 
 if __name__ == "__main__":
     main()

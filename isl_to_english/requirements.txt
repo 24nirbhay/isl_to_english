@@ -15,8 +15,13 @@ opencv-python==4.10.0.84
 mediapipe==0.10.20
 
 # Resolve protobuf conflicts — Mediapipe requires <5.0
-protobuf>=4.25.3
+protobuf==4.25.3
 
 # Utilities
 joblib==1.4.2
+
+# Notes:
+# - TensorFlow 2.17 is used (same package supports GPU when CUDA/cuDNN are installed)
+# - To use GPU on Windows, install the appropriate CUDA and cuDNN versions compatible with TensorFlow 2.17
+#   See: https://www.tensorflow.org/install/source#gpu for compatibility matrix
 
