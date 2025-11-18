@@ -1,0 +1,10 @@
+# Core dependencies for English-to-Konkani translation
+tensorflow==2.17.0
+numpy==1.26.4
+scikit-learn==1.5.2
+
+# Optional: For faster training
+# tensorflow-gpu==2.17.0  # Uncomment if you have CUDA GPU
+
+# Utilities
+tqdm==4.66.1

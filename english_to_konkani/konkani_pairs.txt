@@ -1,0 +1,77 @@
+eng:hello
+kon:नमस्कार
+
+eng:good morning
+kon:सुप्रभात
+
+eng:good afternoon
+kon:शुभ दुपार
+
+eng:good evening
+kon:शुभ संध्याकाळ
+
+eng:good night
+kon:शुभ रात्री
+
+eng:thank you
+kon:धन्यवाद
+
+eng:please
+kon:कृपया
+
+eng:yes
+kon:होय
+
+eng:no
+kon:ना
+
+eng:hello how are you
+kon:नमस्कार तू कशो आसा
+
+eng:i am fine
+kon:हांव बरो आसा
+
+eng:what is your name
+kon:तुजें नांव कितें
+
+eng:my name is
+kon:माजें नांव
+
+eng:nice to meet you
+kon:तुका भेटून बरें वाटलें
+
+eng:sorry
+kon:माफ कर
+
+eng:excuse me
+kon:baba matchoo side
+
+eng:help
+kon:मदत
+
+eng:where
+kon:खंय
+
+eng:when
+kon:केन्ना
+
+eng:why
+kon:कित्याक
+
+eng:how
+kon:कसो
+
+eng:i love you
+kon:हांव तुका मोग करता
+
+eng:goodbye
+kon:भेट येता
+
+eng:see you later
+kon:magir melya
+
+eng:welcome
+kon:येवकार
+
+eng:let it be
+kon:zav baye
